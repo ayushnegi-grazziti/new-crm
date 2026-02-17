@@ -17,16 +17,24 @@ class ContactService {
     updateContact(id, data) {
         const contact = contactRepository.update(id, data);
 
-        // Propagate financial updates to associated Opportunity via Lead
-        if (contact && data.closedWonRevenue) {
+        // Propagate financial updates to associated Opportunity and Lead
+        if (contact && (data.closedWonRevenue || data.closedLostRevenue)) {
             const leads = leadRepository.getAll();
             const associatedLead = leads.find(l => l.contactId === id);
 
-            if (associatedLead && associatedLead.opportunityId) {
-                opportunityRepository.update(associatedLead.opportunityId, {
-                    value: parseFloat(data.closedWonRevenue),
-                    stage: 'Closed Won',
-                    closeDate: new Date().toISOString() // Ensure it appears in recent trends
+            if (associatedLead) {
+                // Update Opportunity
+                if (associatedLead.opportunityId) {
+                    opportunityRepository.update(associatedLead.opportunityId, {
+                        value: parseFloat(data.closedWonRevenue || 0),
+                        stage: data.closedWonRevenue ? 'Closed Won' : 'Closed Lost',
+                        closeDate: new Date().toISOString()
+                    });
+                }
+
+                // Update Lead Status
+                leadRepository.update(associatedLead.id, {
+                    status: data.closedWonRevenue ? 'Closed Won' : 'Closed Lost'
                 });
             }
         }
