@@ -3,6 +3,7 @@ import api from '../services/api';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Filter, MoreVertical, Building2, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatRelativeTime } from '../utils/dateUtils';
 
 const LeadsList = () => {
     const [leads, setLeads] = useState([]);
@@ -114,15 +115,15 @@ const LeadsList = () => {
                                         <td className="px-8 py-6 text-[var(--text-secondary)]">{lead.email}</td>
                                         <td className="px-8 py-6">
                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${lead.status === 'New' ? 'bg-blue-500/10 text-blue-500' :
-                                                    lead.status === 'Converted' ? 'bg-emerald-500/10 text-emerald-500' :
-                                                        'bg-gray-500/10 text-[var(--text-primary)]'
+                                                lead.status === 'Converted' ? 'bg-emerald-500/10 text-emerald-500' :
+                                                    'bg-gray-500/10 text-[var(--text-primary)]'
                                                 }`}>
                                                 <span className="w-1.5 h-1.5 rounded-full bg-current mr-2 animate-pulse"></span>
                                                 {lead.status}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6 text-[var(--text-secondary)] text-sm tabular-nums">
-                                            {new Date(lead.createdAt).toLocaleDateString()}
+                                            {formatRelativeTime(lead.createdAt)}
                                         </td>
                                     </tr>
                                 ))
