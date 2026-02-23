@@ -15,7 +15,7 @@ const getOpportunities = (req, res) => {
 };
 
 const getOpportunityById = (req, res) => {
-    const opp = opportunityService.getOpportunityById(req.params.id);
+    const opp = opportunityService.getOpportunity(req.params.id);
     if (!opp) return res.status(404).json({ message: 'Opportunity not found' });
     res.json(opp);
 };
