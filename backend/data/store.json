@@ -15,6 +15,14 @@
       "email": "ayush@gmail.com",
       "password": "$2a$10$/uXG/b8JmMtzYDXmkE92qehPHhBPxHyamp4ND1qXmt45a0j.C9fJ6",
       "role": "SALES_REP"
+    },
+    {
+      "id": "da47b207-133f-46c2-a626-29ff0d49ff4c",
+      "createdAt": "2026-02-23T12:20:40.462Z",
+      "name": "ayush",
+      "email": "ayush123@gmail.com",
+      "password": "$2a$10$0DlASkPhZyB9zzONOtudUuZvH/pxiqX7BIZ07i7btJgMbkmrDxvY2",
+      "role": "SALES_REP"
     }
   ],
   "leads": [
@@ -135,6 +143,30 @@
       "accountId": "5d5b8122-8f67-4cf9-8f89-0fa3640c3cdf",
       "contactId": "bba2af59-f0b5-48cb-a374-a809e6ed7c67",
       "opportunityId": "5b8bc64e-662a-4ff2-afa5-73bd800fa0bb"
+    },
+    {
+      "id": "e0a43955-de4d-4379-81cf-49633cfaa6ab",
+      "createdAt": "2026-02-23T12:25:05.014Z",
+      "companyName": "accolite",
+      "contactName": "ayush",
+      "email": "ayush2342@gmail.com",
+      "status": "New",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "accountId": "fe39e481-f93c-4b6f-a7df-50905aa4e8c1",
+      "contactId": "70e37dea-5c33-4927-80aa-cdd606bd327e",
+      "opportunityId": "66bc9b58-6475-4ff4-8bab-9c703bc00031"
+    },
+    {
+      "id": "eb080131-b8c7-4fc2-91e2-4782d7d3328b",
+      "createdAt": "2026-02-23T12:30:34.634Z",
+      "companyName": "Amazon",
+      "contactName": "Mayank",
+      "email": "Mayank@gmail.com",
+      "status": "New",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "accountId": "4ab2acee-a192-47ed-a5fe-6e6ffada28aa",
+      "contactId": "e62a5069-b5f5-4ae3-8f45-42e12fbcd3bc",
+      "opportunityId": "d3755e29-0f7f-486f-8321-161e8eece7fb"
     }
   ],
   "accounts": [
@@ -185,6 +217,13 @@
       "createdAt": "2026-02-23T08:16:14.001Z",
       "name": "Test Inc",
       "ownerId": "test_user",
+      "status": "New"
+    },
+    {
+      "id": "4ab2acee-a192-47ed-a5fe-6e6ffada28aa",
+      "createdAt": "2026-02-23T12:30:34.620Z",
+      "name": "Amazon",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
       "status": "New"
     }
   ],
@@ -287,6 +326,22 @@
       "phone": "1234567890",
       "title": "Manager",
       "ownerId": "test_user"
+    },
+    {
+      "id": "70e37dea-5c33-4927-80aa-cdd606bd327e",
+      "createdAt": "2026-02-23T12:25:05.005Z",
+      "accountId": "fe39e481-f93c-4b6f-a7df-50905aa4e8c1",
+      "name": "ayush",
+      "email": "ayush2342@gmail.com",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6"
+    },
+    {
+      "id": "e62a5069-b5f5-4ae3-8f45-42e12fbcd3bc",
+      "createdAt": "2026-02-23T12:30:34.627Z",
+      "accountId": "4ab2acee-a192-47ed-a5fe-6e6ffada28aa",
+      "name": "Mayank",
+      "email": "Mayank@gmail.com",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6"
     }
   ],
   "opportunities": [
@@ -394,6 +449,28 @@
       "closeDate": null,
       "ownerId": "test_user",
       "description": "Test"
+    },
+    {
+      "id": "66bc9b58-6475-4ff4-8bab-9c703bc00031",
+      "createdAt": "2026-02-23T12:25:05.010Z",
+      "accountId": "fe39e481-f93c-4b6f-a7df-50905aa4e8c1",
+      "name": "Deal - accolite",
+      "stage": "Prospect",
+      "value": 0,
+      "closeDate": null,
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "description": "sgg"
+    },
+    {
+      "id": "d3755e29-0f7f-486f-8321-161e8eece7fb",
+      "createdAt": "2026-02-23T12:30:34.631Z",
+      "accountId": "4ab2acee-a192-47ed-a5fe-6e6ffada28aa",
+      "name": "Deal - Amazon",
+      "stage": "Prospect",
+      "value": 0,
+      "closeDate": null,
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "description": "wants to take time to finalize the product "
     }
   ],
   "products": []

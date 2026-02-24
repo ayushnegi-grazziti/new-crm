@@ -57,6 +57,8 @@ class AuthService {
         // Verify the Firebase ID token using Google's public tokeninfo endpoint
         const https = require('https');
 
+        console.log('[AuthService] Verifying Firebase token...');
+
         const tokenData = await new Promise((resolve, reject) => {
             const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`;
             https.get(url, (res) => {
@@ -66,35 +68,55 @@ class AuthService {
                     try {
                         const parsed = JSON.parse(data);
                         if (parsed.error_description || parsed.error) {
+                            console.error('[AuthService] Token verification error:', parsed.error_description || parsed.error);
                             reject(new Error(parsed.error_description || 'Invalid Firebase token'));
                         } else {
                             resolve(parsed);
                         }
                     } catch (e) {
+                        console.error('[AuthService] Failed to parse token response:', e.message);
                         reject(new Error('Failed to parse token response'));
                     }
                 });
-            }).on('error', reject);
+            }).on('error', (err) => {
+                console.error('[AuthService] HTTPS request error:', err.message);
+                reject(err);
+            });
         });
 
-        const { email, name, sub: googleId } = tokenData;
-        if (!email) throw new Error('No email in Firebase token');
+        // Firebase ID tokens might have email in 'email' field or 'user_id' might be needed
+        const { email, name, picture, sub: googleId } = tokenData;
+        console.log(`[AuthService] Token verified for email: ${email}`);
+
+        if (!email) {
+            console.error('[AuthService] No email found in token data:', tokenData);
+            throw new Error('No email in Firebase token');
+        }
 
         // Find existing user or create one
         let user = userRepository.findByEmail(email);
         if (!user) {
+            console.log(`[AuthService] Creating new user for ${email}`);
             user = userRepository.create({
                 name: name || email.split('@')[0],
                 email,
                 password: '', // No password for OAuth users
                 role: 'SALES_REP',
                 googleId,
+                avatar: picture
             });
+        } else {
+            console.log(`[AuthService] Found existing user: ${user.id}`);
+            // Update googleId if not present
+            if (!user.googleId) {
+                userRepository.update(user.id, { googleId });
+            }
         }
 
         const token = generateToken(user);
         return { user: { id: user.id, name: user.name, email: user.email, role: user.role }, token };
     }
+
 
     async verify(tokenData) {
         if (!tokenData || !tokenData.id) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Building2, User, ChevronRight, Target } from 'lucide-react';
+import { Plus, Search, Building2, User, ChevronRight, Target, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelativeTime } from '../utils/dateUtils';
 import { useTheme } from '../context/ThemeContext';
@@ -57,16 +57,14 @@ const LeadsList = () => {
     const fetchLeads = async () => {
         try {
             const response = await api.get('/leads');
-            // If the backend returns empty, let's inject some dummy data to showcase the new UI
-            if (response.data.length === 0) {
-                setLeads(getDummyData());
-            } else {
-                setLeads(response.data);
-            }
+            const data = response.data.length === 0 ? getDummyData() : response.data;
+
+            // Sort by createdAt descending (newest first)
+            const sortedLeads = [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setLeads(sortedLeads);
         } catch (error) {
             console.error('Failed to fetch leads', error);
-            // Fallback to dummy data for demonstration if API fails during dev
-            setLeads(getDummyData());
+            setLeads(getDummyData().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         } finally {
             setLoading(false);
         }
@@ -78,16 +76,14 @@ const LeadsList = () => {
     };
 
     const handleMoveToOpportunity = (leadId) => {
-        // Implement logic to convert/move lead to opportunity
-        // For now, let's navigate to creation with pre-filled data or call an API
         console.log("Moving to opportunity:", leadId);
-        // This is a placeholder for the actual business logic
         alert(`Initiating move to Opportunity for Lead ID: ${leadId}`);
     };
 
     const filteredLeads = leads.filter(lead =>
         (lead.companyName || lead.account || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (lead.contactName || lead.customerName || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (lead.contactName || lead.customerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (lead.customerEmail || lead.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -101,13 +97,13 @@ const LeadsList = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Leads Dashboard</h2>
-                    <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Manage and track your incoming prospects</p>
+                    <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Manage and track your incoming prospects chronologically</p>
                 </div>
                 <Link
                     to="/leads/new"
                     className={`inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold uppercase tracking-wide text-sm transition-all shadow-lg active:scale-95 ${isDark
-                            ? 'bg-indigo-500 hover:bg-indigo-400 text-white shadow-indigo-500/20'
-                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'
+                        ? 'bg-indigo-500 hover:bg-indigo-400 text-white shadow-indigo-500/20'
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'
                         }`}
                 >
                     <Plus className="w-5 h-5 mr-2" />
@@ -115,104 +111,109 @@ const LeadsList = () => {
                 </Link>
             </div>
 
-            {/* Main Leads List Card */}
-            <div className={`rounded-[32px] border shadow-2xl overflow-hidden backdrop-blur-sm ${isDark ? 'bg-[#0b0e14]/90 border-gray-800' : 'bg-white border-gray-100'
-                }`}>
-                {/* Search Toolbar */}
-                <div className={`p-6 border-b flex flex-col sm:flex-row items-center justify-between gap-4 ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
-                    <div className="relative w-full sm:max-w-md group">
-                        <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-gray-500 group-focus-within:text-indigo-400' : 'text-gray-400 group-focus-within:text-indigo-600'}`} size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search accounts or names..."
-                            className={`w-full pl-12 pr-4 py-3.5 rounded-2xl outline-none transition-all font-medium ${isDark
-                                    ? 'bg-[#121620] text-gray-200 border border-gray-800 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 placeholder:text-gray-600'
-                                    : 'bg-gray-50 text-gray-900 border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-gray-400'
-                                }`}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+            {/* Search Toolbar */}
+            <div className={`p-1 flex flex-col sm:flex-row items-center justify-between gap-4`}>
+                <div className="relative w-full sm:max-w-md group">
+                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-gray-500 group-focus-within:text-indigo-400' : 'text-gray-400 group-focus-within:text-indigo-600'}`} size={18} />
+                    <input
+                        type="text"
+                        placeholder="Search leads, accounts, or emails..."
+                        className={`w-full pl-12 pr-4 py-3.5 rounded-2xl outline-none transition-all font-medium ${isDark
+                            ? 'bg-[#0b0e14] text-gray-200 border border-gray-800 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 placeholder:text-gray-600'
+                            : 'bg-white text-gray-900 border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-gray-400'
+                            }`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)] opacity-60">
+                    <Clock size={14} />
+                    Newest First
+                </div>
+            </div>
 
-                {/* Table View */}
+            {/* Leads Table */}
+            <div className={`rounded-[32px] border overflow-hidden transition-all duration-300 ${isDark ? 'bg-[#0b0e14] border-gray-800 shadow-2xl' : 'bg-white border-gray-100 shadow-xl'}`}>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className={`border-b ${isDark ? 'bg-[#121620]/50 border-gray-800' : 'bg-gray-50/80 border-gray-100'}`}>
-                                <th className={`px-8 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Company (Account)</th>
-                                <th className={`px-6 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Department</th>
-                                <th className={`px-6 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Customer Email</th>
+                            <tr className={`border-b ${isDark ? 'bg-[#121620]/30 border-gray-800' : 'bg-gray-50/50 border-gray-100'}`}>
+                                <th className={`pl-8 pr-6 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Lead Info</th>
+                                <th className={`px-6 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Account</th>
                                 <th className={`px-6 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Status</th>
+                                <th className={`px-6 py-5 text-[10px] uppercase tracking-[0.15em] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Created</th>
                                 <th className={`px-8 py-5 text-[10px] uppercase tracking-[0.15em] font-bold text-right ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Actions</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y ${isDark ? 'divide-gray-800/60' : 'divide-gray-100'}`}>
+                        <tbody className={`divide-y ${isDark ? 'divide-gray-800/40' : 'divide-gray-50'}`}>
                             {loading ? (
-                                Array.from({ length: 4 }).map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={i}>
                                         <td colSpan="5" className="px-8 py-6">
-                                            <div className={`h-4 rounded w-full ${isDark ? 'bg-gray-800/50' : 'bg-gray-100'}`}></div>
+                                            <div className={`h-4 rounded animate-pulse ${isDark ? 'bg-gray-800/50' : 'bg-gray-100'}`}></div>
                                         </td>
                                     </tr>
                                 ))
                             ) : filteredLeads.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className={`px-8 py-24 text-center text-sm font-medium italic ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                                    <td colSpan="5" className={`p-24 text-center text-sm font-medium italic ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
                                         No leads found matching "{searchTerm}"
                                     </td>
                                 </tr>
                             ) : (
-                                filteredLeads.map(lead => (
+                                filteredLeads.map((lead) => (
                                     <tr key={lead.id} className={`transition-colors group ${isDark ? 'hover:bg-[#121620]' : 'hover:bg-gray-50/80'}`}>
-                                        {/* Company Name */}
-                                        <td className="px-8 py-5">
+                                        {/* Lead Info */}
+                                        <td className="pl-8 pr-6 py-5">
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-[15px]">{lead.companyName || lead.account}</span>
-                                                <span className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                                                    {lead.contactName || lead.customerName || 'No Contact'}
+                                                <span className="font-bold text-[14px] leading-snug">{lead.contactName || lead.customerName || 'N/A'}</span>
+                                                <span className={`text-[11px] font-medium mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                    {lead.email || lead.customerEmail || 'No Email'}
                                                 </span>
                                             </div>
                                         </td>
 
-                                        {/* Department */}
+                                        {/* Account */}
                                         <td className="px-6 py-5">
-                                            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                {lead.department || 'General'}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                                                    <Building2 size={14} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
+                                                </div>
+                                                <span className="font-bold text-[13px]">{lead.companyName || lead.account || 'Private'}</span>
+                                            </div>
                                         </td>
 
-                                        {/* Customer Email */}
+                                        {/* Status */}
                                         <td className="px-6 py-5">
-                                            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                {lead.email || lead.customerEmail || 'N/A'}
-                                            </span>
-                                        </td>
-
-                                        {/* Status Badge */}
-                                        <td className="px-6 py-5">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${lead.status === 'New' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
-                                                    (lead.status === 'Converted' || lead.status === 'Closed Won') ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                                                        lead.status === 'Closed Lost' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
-                                                            'bg-gray-500/10 text-gray-500 border border-gray-500/20'
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${lead.status === 'New' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                                                (lead.status === 'Converted' || lead.status === 'Closed Won') ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                                                    lead.status === 'Closed Lost' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
+                                                        'bg-gray-500/10 text-gray-500 border border-gray-500/20'
                                                 }`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full bg-current mr-2 ${lead.status === 'New' ? 'animate-pulse shadow-[0_0_8px_currentColor]' : ''}`}></span>
+                                                <span className={`w-1 h-1 rounded-full bg-current mr-2 ${lead.status === 'New' ? 'animate-pulse shadow-[0_0_8px_currentColor]' : ''}`}></span>
                                                 {lead.status || 'New'}
+                                            </span>
+                                        </td>
+
+                                        {/* Created */}
+                                        <td className="px-6 py-5">
+                                            <span className={`text-xs font-medium ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                                                {formatRelativeTime(lead.createdAt)}
                                             </span>
                                         </td>
 
                                         {/* Actions */}
                                         <td className="px-8 py-5 text-right">
-                                            <div className="flex justify-end gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
                                                 <Tooltip text="Move to Opportunity" isDark={isDark}>
                                                     <button
                                                         onClick={() => handleMoveToOpportunity(lead.id)}
                                                         className={`p-2 rounded-xl transition-all shadow-sm ${isDark
-                                                                ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 border border-blue-500/20'
-                                                                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 hover:scale-105'
+                                                            ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 border border-blue-500/20'
+                                                            : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 hover:scale-105'
                                                             }`}
                                                     >
-                                                        <Target size={18} />
+                                                        <Target size={16} />
                                                     </button>
                                                 </Tooltip>
 
@@ -220,16 +221,15 @@ const LeadsList = () => {
                                                     <button
                                                         onClick={() => handleOpenDetails(lead)}
                                                         className={`p-2 rounded-xl transition-all shadow-sm ${isDark
-                                                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
-                                                                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 hover:scale-105'
+                                                            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
+                                                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 hover:scale-105'
                                                             }`}
                                                     >
-                                                        <ChevronRight size={18} />
+                                                        <ChevronRight size={16} />
                                                     </button>
                                                 </Tooltip>
                                             </div>
                                         </td>
-
                                     </tr>
                                 ))
                             )}
@@ -244,7 +244,6 @@ const LeadsList = () => {
                 onClose={() => setIsDrawerOpen(false)}
                 lead={selectedLead}
             />
-
         </motion.div>
     );
 };
@@ -275,8 +274,6 @@ function getDummyData() {
             expectedHours: 720,
             contractType: 'Time & Materials',
             status: 'New',
-            proposalLink: 'https://docs.google.com/proposal-draft-1',
-            estimatesLink: 'https://docs.google.com/estimates-v2'
         },
         {
             id: 2,
@@ -299,29 +296,6 @@ function getDummyData() {
             expectedHours: 320,
             contractType: 'Fixed Bid',
             status: 'Converted',
-        },
-        {
-            id: 3,
-            account_ID: 103,
-            department: 'Public Sector',
-            createdAt: '2023-09-01T14:00:00Z',
-            account: 'City Metro Transit',
-            companyName: 'City Metro Transit',
-            customerName: 'Robert Lang',
-            customerEmail: 'rlang@metro.gov.test',
-            email: 'rlang@metro.gov.test',
-            salesManager: 'Jessica Wong',
-            deliveryManager: 'Tom Hardy',
-            leadType: 'Outbound',
-            lastConversation: 'Final RFP submitted. They went with a competitor who underbid.',
-            lastConversationDate: '2023-09-30T16:45:00Z',
-            comments: 'Lost on price. Consider revisiting in 12 months.',
-            fteCount: 12.0,
-            nonFte: 3.0,
-            expectedHours: 1920,
-            contractType: 'Retainer',
-            status: 'Closed Lost',
-            lostReason: 'Competitor offered a 30% lower bid on the initial year.',
         }
     ];
 }

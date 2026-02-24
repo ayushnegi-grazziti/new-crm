@@ -12,7 +12,6 @@ const LeadForm = () => {
 
     const [formData, setFormData] = useState({
         // Basic Info
-        account_ID: '',
         companyName: '',
         department: '',
         customerName: '',
@@ -31,7 +30,7 @@ const LeadForm = () => {
         fteCount: '',
         nonFte: '',
         expectedHours: '',
-        contractType: 'T&M',
+        contractType: 't&m',
         status: 'New',
         lostReason: '',
 
@@ -53,37 +52,35 @@ const LeadForm = () => {
         setLoading(true);
         setError('');
 
-        // Prepare data for backend (converting strings to numbers where necessary)
+        // Prepare data for backend
         const payload = {
             ...formData,
-            account_ID: formData.account_ID ? parseInt(formData.account_ID, 10) : null,
-            fteCount: formData.fteCount ? parseFloat(formData.fteCount) : null,
-            nonFte: formData.nonFte ? parseFloat(formData.nonFte) : null,
-            expectedHours: formData.expectedHours ? parseFloat(formData.expectedHours) : null,
-            // Fallbacks for older backend expectations (since store.json uses these)
-            account: formData.companyName,
-            email: formData.customerEmail || '', // Ensure email is sent, even if empty
-            contactName: formData.customerName || '', // Ensure contactName is sent, even if empty
-            phone: '', // Default empty string
-            title: '', // Default empty string
-            description: formData.lastConversation || formData.comments || '' // some backend required description
+            fteCount: formData.fteCount ? parseFloat(formData.fteCount) : 0,
+            nonFte: formData.nonFte ? parseFloat(formData.nonFte) : 0,
+            expectedHours: formData.expectedHours ? parseFloat(formData.expectedHours) : 0,
+            // Backend service expectations
+            contactName: formData.customerName,
+            email: formData.customerEmail,
+            description: formData.lastConversation || formData.comments || ''
         };
 
         try {
             await api.post('/leads', payload);
             navigate('/leads');
         } catch (err) {
-            console.error(err);
-            // Simulate success for frontend demo purposes if backend fails on new schema
-            if (err.response?.status === 404 || err.message.includes('Network')) {
-                console.warn("Backend rejected or unavailable, simulating success for demo.");
-                setTimeout(() => navigate('/leads'), 800);
-            } else {
-                setError(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to create lead');
-                console.error("Payload sent:", payload);
+            console.error('Lead creation error:', err);
+            const data = err.response?.data;
+            const message = data?.message || data?.error || err.message || 'Failed to create lead';
+            const details = data?.details || data?.error || '';
+
+            setError(`${message}${details ? ': ' + details : ''}`);
+
+            // If it's explicitly an auth issue, log helpful context
+            if (err.response?.status === 401) {
+                console.warn('Auth Error Details:', data);
             }
         } finally {
-            if (!error) setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -138,13 +135,10 @@ const LeadForm = () => {
                     <section>
                         <SectionHeader icon={Building2} title="Basic Information" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
+                            <div className="md:col-span-2">
                                 <label className={labelClasses}>Company Name (Account) *</label>
                                 <input type="text" name="companyName" required className={inputClasses} value={formData.companyName} onChange={handleChange} placeholder="e.g. Acme Corp" />
-                            </div>
-                            <div>
-                                <label className={labelClasses}>Account ID</label>
-                                <input type="number" name="account_ID" className={inputClasses} value={formData.account_ID} onChange={handleChange} placeholder="Integer DB Mapping ID" />
+                                <p className="text-[10px] mt-2 text-gray-500 italic">If this company already exists, the lead will be linked automatically.</p>
                             </div>
                             <div>
                                 <label className={labelClasses}>Customer Name *</label>

@@ -1,127 +1,102 @@
-import React, { createContext, useState, useEffect } from 'react';
-import api from '../services/api';
-import { auth } from '../firebase';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth, googleProvider } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import api from '../services/api';
 
-export const AuthContext = createContext(null);
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Listen for Firebase auth state changes (handles Google login)
+        console.log('AuthContext: Initializing listener');
         const unsubscribeFirebase = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (firebaseUser) {
-                // User is signed in via Firebase (Google)
-                // Check if we already have a CRM token from a backend exchange
-                const crmToken = localStorage.getItem('token');
-                const crmUser = localStorage.getItem('user');
+            console.log('AuthContext: Firebase state changed', firebaseUser ? 'USER_LOGGED_IN' : 'NO_USER');
 
-                if (crmToken && crmUser) {
-                    try {
-                        setUser(JSON.parse(crmUser));
-                    } catch (e) {
-                        // Fallback: use Firebase user data directly
-                        const fbUser = {
-                            id: firebaseUser.uid,
-                            name: firebaseUser.displayName || firebaseUser.email,
-                            email: firebaseUser.email,
-                            role: 'SALES_REP',
-                            photoURL: firebaseUser.photoURL,
-                        };
-                        setUser(fbUser);
-                        localStorage.setItem('user', JSON.stringify(fbUser));
-                    }
+            if (firebaseUser) {
+                // Firebase user is logged in — check for CRM token
+                const token = localStorage.getItem('token');
+                const storedUser = localStorage.getItem('user');
+
+                if (token && storedUser) {
+                    console.log('AuthContext: CRM token found, setting user');
+                    setUser(JSON.parse(storedUser));
+                    setLoading(false);
+
+                    // Verify with backend in background
+                    api.get('/auth/verify').catch(err => {
+                        console.warn('Background verify failed:', err.message);
+                        if (err.response?.status === 401) {
+                            logout();
+                        }
+                    });
                 } else {
-                    // No CRM token yet — try to exchange Firebase token for CRM token
+                    console.log('AuthContext: No CRM token, starting loading and exchanging...');
+                    setLoading(true); // CRITICAL: Prevent ProtectedRoute from redirecting
+                    // No CRM token — must exchange Firebase token for CRM token
                     try {
                         const idToken = await firebaseUser.getIdToken();
                         const response = await api.post('/auth/firebase-login', { idToken });
-                        const { token, user: crmUserData } = response.data;
-                        localStorage.setItem('token', token);
+                        const { token: crmToken, user: crmUserData } = response.data;
+
+                        console.log('AuthContext: Exchange successful');
+                        localStorage.setItem('token', crmToken);
                         localStorage.setItem('user', JSON.stringify(crmUserData));
                         setUser(crmUserData);
                     } catch (err) {
-                        // Backend unavailable — use Firebase user data directly
-                        console.warn('Backend unavailable, using Firebase user data:', err.message);
-                        const fbUser = {
-                            id: firebaseUser.uid,
-                            name: firebaseUser.displayName || firebaseUser.email,
-                            email: firebaseUser.email,
-                            role: 'SALES_REP',
-                            photoURL: firebaseUser.photoURL,
-                        };
-                        setUser(fbUser);
-                        localStorage.setItem('user', JSON.stringify(fbUser));
-                        // Store Firebase token as CRM token for API calls
-                        const idToken = await firebaseUser.getIdToken();
-                        localStorage.setItem('token', idToken);
+                        console.error('CRM Backend exchange failed:', err.message);
+                        logout();
+                    } finally {
+                        setLoading(false);
                     }
                 }
             } else {
-                // Firebase user signed out — check for email/password CRM session
+                console.log('AuthContext: No Firebase user, checking for standalone CRM session');
+                // No Firebase user — check for persistent CRM session
                 const token = localStorage.getItem('token');
                 const userData = localStorage.getItem('user');
 
                 if (token && userData) {
                     try {
                         setUser(JSON.parse(userData));
-                        // Verify with backend in background
-                        api.get('/auth/verify')
-                            .then((response) => {
-                                setUser(response.data.user);
-                                localStorage.setItem('user', JSON.stringify(response.data.user));
-                            })
-                            .catch((error) => {
-                                if (error.response?.status === 401) {
-                                    localStorage.removeItem('token');
-                                    localStorage.removeItem('user');
-                                    setUser(null);
-                                }
-                            });
+                        // If we have a standalone session, we can stop loading
+                        setLoading(false);
+
+                        api.get('/auth/verify').catch(err => {
+                            if (err.response?.status === 401) logout();
+                        });
                     } catch (e) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
+                        console.error('Failed to parse local user data', e);
+                        logout();
+                        setLoading(false);
                     }
+                } else {
+                    setUser(null);
+                    setLoading(false);
                 }
             }
-            setLoading(false);
         });
 
         return () => unsubscribeFirebase();
     }, []);
 
+
     const login = async (email, password) => {
         const response = await api.post('/auth/login', { email, password });
-        const { token, user } = response.data;
+        const { token, user: userData } = response.data;
         localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        setUser(user);
-        return user;
-    };
-
-    const firebaseLogin = async (idToken) => {
-        // Try backend exchange first
-        try {
-            const response = await api.post('/auth/firebase-login', { idToken });
-            const { token, user } = response.data;
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            setUser(user);
-            return user;
-        } catch (err) {
-            // Backend unavailable — Firebase onAuthStateChanged will handle it
-            console.warn('Backend firebase-login failed, Firebase auth state will handle session:', err.message);
-            // Don't throw — let onAuthStateChanged pick up the Firebase session
-        }
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        return userData;
     };
 
     const logout = async () => {
+        console.log('AuthContext: Logging out');
         try {
-            await signOut(auth); // Sign out of Firebase
+            await signOut(auth);
         } catch (e) {
-            console.warn('Firebase signOut error:', e);
+            console.error('Firebase signout error', e);
         }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -129,8 +104,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, firebaseLogin }}>
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
 };
+
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;

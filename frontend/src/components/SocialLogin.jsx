@@ -9,21 +9,29 @@ const SocialLogin = ({ onSuccess, onError }) => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
+            console.log('[SocialLogin] Starting Google sign-in popup...');
             const result = await signInWithPopup(auth, googleProvider);
+
+            console.log('[SocialLogin] Google sign-in successful, calling onSuccess');
             // Firebase onAuthStateChanged in AuthContext will automatically
             // pick up the new user and update the auth state.
             // We just call onSuccess to let the parent navigate.
-            if (onSuccess) onSuccess(result.user);
+            if (onSuccess) {
+                // Wait if onSuccess is async
+                await onSuccess(result.user);
+            }
         } catch (err) {
-            console.error('Google sign-in error:', err);
+            console.error('[SocialLogin] Google sign-in error:', err);
             // Silently ignore popup closed by user
             if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
                 if (onError) onError(err.message || 'Google sign-in failed');
             }
         } finally {
+            console.log('[SocialLogin] Sign-in flow finished');
             setLoading(false);
         }
     };
+
 
     return (
         <div className="mt-8 space-y-6">
