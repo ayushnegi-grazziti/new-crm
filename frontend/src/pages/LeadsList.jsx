@@ -75,10 +75,18 @@ const LeadsList = () => {
         setIsDrawerOpen(true);
     };
 
-    const handleMoveToOpportunity = (leadId) => {
-        console.log("Moving to opportunity:", leadId);
-        alert(`Initiating move to Opportunity for Lead ID: ${leadId}`);
+    const handleMoveToOpportunity = async (leadId) => {
+        try {
+            console.log("Converting lead to opportunity:", leadId);
+            await api.post(`/leads/${leadId}/convert`);
+            alert('Lead successfully converted to Opportunity!');
+            fetchLeads(); // Refresh the list
+        } catch (error) {
+            console.error('Conversion failed', error);
+            alert(`Failed to convert lead: ${error.response?.data?.message || error.message}`);
+        }
     };
+
 
     const filteredLeads = leads.filter(lead =>
         (lead.companyName || lead.account || '').toLowerCase().includes(searchTerm.toLowerCase()) ||

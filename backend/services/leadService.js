@@ -38,19 +38,7 @@ class LeadService {
             });
             console.log('Created contact:', contact.id);
 
-            // 3. Create Opportunity
-            const opportunity = opportunityRepository.create({
-                accountId: account.id,
-                name: `Deal - ${companyName}`,
-                stage: 'Prospect',
-                value: 0,
-                closeDate: null,
-                ownerId: user?.id || 'system',
-                description: description || ''
-            });
-            console.log('Created opportunity:', opportunity.id);
-
-            // 4. Create Lead
+            // 3. Create Lead (No auto-opportunity)
             const lead = leadRepository.create({
                 companyName,
                 contactName: contactName || 'N/A',
@@ -60,7 +48,7 @@ class LeadService {
                 ownerId: user?.id || 'system',
                 accountId: account.id,
                 contactId: contact.id,
-                opportunityId: opportunity.id,
+                opportunityId: null, // No opportunity yet
                 // Include other fields if present in leadData
                 department: leadData.department,
                 leadType: leadData.leadType,
@@ -72,16 +60,67 @@ class LeadService {
                 contractType: leadData.contractType,
                 comments: leadData.comments,
                 proposalLink: leadData.proposalLink,
-                estimatesLink: leadData.estimatesLink
+                estimatesLink: leadData.estimatesLink,
+                description: description || ''
             });
             console.log('Created lead successfully:', lead.id);
 
-            return { lead, account, contact, opportunity };
+            return { lead, account, contact };
         } catch (error) {
             console.error('CRITICAL ERROR in createLead:', error);
             throw error;
         }
     }
+
+    async convertLead(id, user) {
+        try {
+            const lead = leadRepository.getById(id);
+            if (!lead) throw new Error('Lead not found');
+            if (lead.status === 'Converted') throw new Error('Lead already converted');
+
+            // 1. Create the Opportunity
+            const opportunity = opportunityRepository.create({
+                accountId: lead.accountId,
+                contactId: lead.contactId,
+                originalLeadId: lead.id,
+                oppName: `Deal - ${lead.companyName}`,
+                description: lead.description || lead.comments || '',
+                service: '', // Tech/Service to be filled later
+                primaryTeam: lead.department || '',
+                deliveryOwner: lead.deliveryManager || '',
+                fteCount: lead.fteCount || 0,
+                nonFteHours: lead.expectedHours || 0,
+                pmAm: lead.salesManager || '',
+                status: 'New',
+                skillTech: '',
+                downtrendReason: '',
+                pmToolLink: '',
+                projectPlanLink: '',
+                projectFolderLink: '',
+                gitLink: lead.gitLink || '',
+                codeReviewDate: null,
+                codeReviewOwner: '',
+                comments: lead.comments || '',
+                lastModifiedBy: user?.name || 'system',
+                lastModifiedDate: new Date().toISOString(),
+                // New discussion fields
+                products: '',
+                notes: ''
+            });
+
+            // 2. Update Lead status and ref
+            leadRepository.update(id, {
+                status: 'Converted',
+                opportunityId: opportunity.id
+            });
+
+            return { lead, opportunity };
+        } catch (error) {
+            console.error('Lead conversion error:', error);
+            throw error;
+        }
+    }
+
 
     getAllLeads() {
         return leadRepository.getAll();

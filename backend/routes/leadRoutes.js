@@ -9,5 +9,7 @@ router.post('/', leadController.createLead);
 router.get('/', leadController.getLeads);
 router.get('/:id', leadController.getLead);
 router.patch('/:id/status', leadController.updateStatus);
+router.post('/:id/convert', leadController.convertLead);
+
 
 module.exports = router;

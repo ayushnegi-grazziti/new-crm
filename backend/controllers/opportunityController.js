@@ -20,14 +20,15 @@ const getOpportunityById = (req, res) => {
     res.json(opp);
 };
 
-const updateOpportunity = (req, res) => {
+const updateOpportunity = async (req, res) => {
     try {
-        const opportunity = opportunityService.updateOpportunity(req.params.id, req.body);
+        const opportunity = await opportunityService.updateOpportunityDetails(req.params.id, req.body);
         res.json(opportunity);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
+
 
 module.exports = {
     createOpportunity,

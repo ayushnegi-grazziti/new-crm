@@ -167,6 +167,18 @@
       "accountId": "4ab2acee-a192-47ed-a5fe-6e6ffada28aa",
       "contactId": "e62a5069-b5f5-4ae3-8f45-42e12fbcd3bc",
       "opportunityId": "d3755e29-0f7f-486f-8321-161e8eece7fb"
+    },
+    {
+      "id": "0e0f1034-07e5-4e7a-a86c-bdbebb841f8d",
+      "createdAt": "2026-02-24T06:57:28.238Z",
+      "companyName": "M&M",
+      "contactName": "ishu",
+      "email": "ishu@gmail.com",
+      "status": "New",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "accountId": "79fb581c-5bb0-4758-b331-34de35fd9547",
+      "contactId": "e11d700f-50ea-428e-80bf-11b19a0a785e",
+      "opportunityId": "59523c8b-5121-4f7e-9eae-5bdeccedcb4a"
     }
   ],
   "accounts": [
@@ -223,6 +235,13 @@
       "id": "4ab2acee-a192-47ed-a5fe-6e6ffada28aa",
       "createdAt": "2026-02-23T12:30:34.620Z",
       "name": "Amazon",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "status": "New"
+    },
+    {
+      "id": "79fb581c-5bb0-4758-b331-34de35fd9547",
+      "createdAt": "2026-02-24T06:57:28.209Z",
+      "name": "M&M",
       "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
       "status": "New"
     }
@@ -342,6 +361,14 @@
       "name": "Mayank",
       "email": "Mayank@gmail.com",
       "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6"
+    },
+    {
+      "id": "e11d700f-50ea-428e-80bf-11b19a0a785e",
+      "createdAt": "2026-02-24T06:57:28.213Z",
+      "accountId": "79fb581c-5bb0-4758-b331-34de35fd9547",
+      "name": "ishu",
+      "email": "ishu@gmail.com",
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6"
     }
   ],
   "opportunities": [
@@ -355,11 +382,13 @@
       "closeDate": "2026-02-17T10:41:16.188Z",
       "ownerId": "fc260726-0140-4dbc-ba44-9738dd7f844a",
       "description": "react dev",
-      "updatedAt": "2026-02-19T08:12:59.792Z",
+      "updatedAt": "2026-02-24T06:37:38.354Z",
       "git": "",
       "pmChecklist": "",
       "qbrNotes": "",
-      "productIds": []
+      "productIds": [],
+      "products": "zxcxzczxczxc",
+      "notes": "zxczxczxczczc"
     },
     {
       "id": "8e7ecdc5-558d-4f16-a027-c7e12b1b9319",
@@ -470,7 +499,24 @@
       "value": 0,
       "closeDate": null,
       "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
-      "description": "wants to take time to finalize the product "
+      "description": "wants to take time to finalize the product ",
+      "products": "dsffffffff",
+      "notes": "fdsssssss",
+      "git": "dfdfsdfs",
+      "pmChecklist": "sdffffffffff",
+      "qbrNotes": "sdfffffffffff",
+      "updatedAt": "2026-02-24T06:53:30.341Z"
+    },
+    {
+      "id": "59523c8b-5121-4f7e-9eae-5bdeccedcb4a",
+      "createdAt": "2026-02-24T06:57:28.234Z",
+      "accountId": "79fb581c-5bb0-4758-b331-34de35fd9547",
+      "name": "Deal - M&M",
+      "stage": "Prospect",
+      "value": 0,
+      "closeDate": null,
+      "ownerId": "9de216cf-e39f-44c8-845c-a50e4aaa6ff6",
+      "description": "wants a lower price for the product"
     }
   ],
   "products": []
