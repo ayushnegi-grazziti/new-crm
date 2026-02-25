@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
 import api from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, ArrowLeft, Building2, User, Briefcase, FileText, Link as LinkIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { useEffect } from 'react';
+import React, { useState } from 'react';
 
 const LeadForm = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const isEdit = !!id;
 
     const [formData, setFormData] = useState({
         // Basic Info
@@ -40,7 +43,46 @@ const LeadForm = () => {
     });
 
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (isEdit) {
+            fetchLeadData();
+        }
+    }, [id]);
+
+    const fetchLeadData = async () => {
+        setFetching(true);
+        try {
+            const res = await api.get(`/leads/${id}`);
+            const data = res.data;
+            setFormData({
+                companyName: data.companyName || '',
+                department: data.department || '',
+                customerName: data.contactName || data.customerName || '',
+                customerEmail: data.email || data.customerEmail || '',
+                leadType: data.leadType || 'new',
+                salesManager: data.salesManager || '',
+                deliveryManager: data.deliveryManager || '',
+                lastConversation: data.description || '',
+                comments: data.comments || '',
+                fteCount: data.fteCount || '',
+                nonFte: data.nonFte || '',
+                expectedHours: data.expectedHours || '',
+                contractType: data.contractType || 't&m',
+                status: data.status || 'New',
+                lostReason: data.lostReason || '',
+                proposalLink: data.proposalLink || '',
+                estimatesLink: data.estimatesLink || ''
+            });
+        } catch (err) {
+            console.error('Failed to fetch lead data', err);
+            setError('Could not load lead details for editing');
+        } finally {
+            setFetching(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -65,7 +107,11 @@ const LeadForm = () => {
         };
 
         try {
-            await api.post('/leads', payload);
+            if (isEdit) {
+                await api.patch(`/leads/${id}`, payload);
+            } else {
+                await api.post('/leads', payload);
+            }
             navigate('/leads');
         } catch (err) {
             console.error('Lead creation error:', err);
@@ -119,8 +165,8 @@ const LeadForm = () => {
             <div className={`rounded-[32px] border shadow-2xl overflow-hidden p-8 md:p-10 ${isDark ? 'bg-[#0b0e14] border-gray-800' : 'bg-white border-gray-100'
                 }`}>
                 <div className="mb-8">
-                    <h2 className={`text-3xl font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Create New Lead</h2>
-                    <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Fill in the comprehensive details to track a new prospect.</p>
+                    <h2 className={`text-3xl font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{isEdit ? 'Refine Lead Profile' : 'Create New Lead'}</h2>
+                    <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{isEdit ? 'Update details to keep lead information synchronized across the CRM.' : 'Fill in the comprehensive details to track a new prospect.'}</p>
                 </div>
 
                 {error && (
@@ -263,7 +309,7 @@ const LeadForm = () => {
                                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             <Save className="w-5 h-5 mr-2" />
-                            {loading ? 'Creating Lead...' : 'Save Lead Profile'}
+                            {loading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Lead Profile' : 'Save Lead Profile')}
                         </button>
                     </div>
                 </form>

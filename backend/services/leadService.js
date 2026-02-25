@@ -130,6 +130,59 @@ class LeadService {
         return leadRepository.getById(id);
     }
 
+    async updateLead(id, data, user) {
+        try {
+            const lead = leadRepository.getById(id);
+            if (!lead) throw new Error('Lead not found');
+
+            // 1. Update Lead record
+            const updatedLead = leadRepository.update(id, data);
+
+            // 2. Synchronize with Opportunity if it exists
+            if (updatedLead.opportunityId) {
+                const sharedFields = {
+                    fteCount: updatedLead.fteCount,
+                    nonFteHours: updatedLead.expectedHours, // note: backend uses nonFteHours for expectedHours in some places
+                    pmAm: updatedLead.salesManager,
+                    deliveryOwner: updatedLead.deliveryManager,
+                    primaryTeam: updatedLead.department,
+                    description: updatedLead.description || updatedLead.comments || '',
+                    comments: updatedLead.comments,
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Specific nonFte mapping check
+                if (updatedLead.nonFte !== undefined) {
+                    sharedFields.nonFte = updatedLead.nonFte;
+                }
+
+                await opportunityRepository.update(updatedLead.opportunityId, sharedFields);
+            }
+
+            // 3. Update Contact if name/email/phone changed
+            if (updatedLead.contactId && (data.contactName || data.email || data.phone || data.title)) {
+                contactRepository.update(updatedLead.contactId, {
+                    name: data.contactName || updatedLead.contactName,
+                    email: data.email || updatedLead.email,
+                    phone: data.phone || updatedLead.phone,
+                    title: data.title || updatedLead.title
+                });
+            }
+
+            // 4. Update Account if companyName changed
+            if (updatedLead.accountId && data.companyName) {
+                accountRepository.update(updatedLead.accountId, {
+                    name: data.companyName
+                });
+            }
+
+            return updatedLead;
+        } catch (error) {
+            console.error('Lead update error:', error);
+            throw error;
+        }
+    }
+
     updateLeadStatus(id, status) {
         return leadRepository.update(id, { status });
     }

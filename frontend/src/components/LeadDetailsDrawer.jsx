@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { X, Building2, User, Mail, Briefcase, Calendar, Clock, FileText, CheckCircle2, TrendingUp, XCircle, Link as LinkIcon, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTheme } from '../context/ThemeContext';
@@ -74,13 +75,22 @@ const LeadDetailsDrawer = ({ isOpen, onClose, lead }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={onClose}
-                                    className={`p-3 rounded-2xl transition-all active:scale-90 ${isDark ? 'bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white' : 'bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-900 shadow-sm border border-gray-100'
-                                        }`}
-                                >
-                                    <X size={20} strokeWidth={2.5} />
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <Link
+                                        to={`/leads/${lead.id}/edit`}
+                                        className={`p-3 rounded-2xl transition-all active:scale-90 ${isDark ? 'bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white' : 'bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-900 shadow-sm border border-gray-100'}`}
+                                        title="Edit Lead"
+                                    >
+                                        <Edit3 size={20} strokeWidth={2.5} />
+                                    </Link>
+                                    <button
+                                        onClick={onClose}
+                                        className={`p-3 rounded-2xl transition-all active:scale-90 ${isDark ? 'bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white' : 'bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-900 shadow-sm border border-gray-100'
+                                            }`}
+                                    >
+                                        <X size={20} strokeWidth={2.5} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -127,7 +137,9 @@ const LeadDetailsDrawer = ({ isOpen, onClose, lead }) => {
                                                     <DetailItem label="Account / Company" value={lead.companyName || lead.account} isDark={isDark} />
                                                     <DetailItem label="Department" value={lead.department} isDark={isDark} />
                                                     <DetailItem label="Contact Person" value={lead.contactName || lead.customerName} isDark={isDark} />
+                                                    <DetailItem label="Job Title" value={lead.title || lead.jobTitle} isDark={isDark} />
                                                     <DetailItem label="Contact Email" value={lead.email || lead.customerEmail} isDark={isDark} isEmail />
+                                                    <DetailItem label="Contact Phone" value={lead.phone} isDark={isDark} />
                                                     <DetailItem label="Lead Source/Type" value={lead.leadType} isDark={isDark} isCaps />
                                                 </div>
                                             </section>

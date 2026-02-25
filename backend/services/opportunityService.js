@@ -20,10 +20,29 @@ class OpportunityService {
 
     async updateOpportunityDetails(id, updateData) {
         // Ensure we support all the new schema fields and discussion notes
-        return opportunityRepository.update(id, {
+        const updatedOpp = await opportunityRepository.update(id, {
             ...updateData,
             updatedAt: new Date().toISOString()
         });
+
+        // 2. Propagate shared fields back to the Lead
+        if (updatedOpp.originalLeadId) {
+            const leadRepository = require('../repositories/leadRepository');
+            const sharedFields = {
+                fteCount: updatedOpp.fteCount,
+                expectedHours: updatedOpp.nonFteHours,
+                nonFte: updatedOpp.nonFte,
+                salesManager: updatedOpp.pmAm,
+                deliveryManager: updatedOpp.deliveryOwner,
+                department: updatedOpp.primaryTeam,
+                comments: updatedOpp.comments || updatedOpp.notes,
+                updatedAt: new Date().toISOString()
+            };
+
+            leadRepository.update(updatedOpp.originalLeadId, sharedFields);
+        }
+
+        return updatedOpp;
     }
 
 }

@@ -174,6 +174,8 @@ const OpportunityDetailsDrawer = ({ isOpen, onClose, opportunityId, onUpdate }) 
                                         <div className="grid grid-cols-2 gap-y-10 gap-x-6 px-2">
                                             <InfoBlock label="Account" value={opportunity?.accountName || opportunity?.accountId} icon={Building2} />
                                             <InfoBlock label="Lead Source" value={opportunity?.originalLeadId} icon={FileText} />
+                                            <InfoBlock label="Contact Phone" value={originalLead?.phone} icon={Users} />
+                                            <InfoBlock label="Contact Email" value={originalLead?.email} icon={Users} />
                                             <InfoBlock label="Delivery Owner" value={opportunity?.deliveryOwner} icon={HardHat} />
                                             <InfoBlock label="Owner ID" value={opportunity?.ownerId} icon={UserCheck} />
                                         </div>
@@ -197,7 +199,7 @@ const OpportunityDetailsDrawer = ({ isOpen, onClose, opportunityId, onUpdate }) 
                                     {/* Capacity Planning */}
                                     <section>
                                         <SectionHeader title="Resource Allocation" icon={Activity} />
-                                        <div className="grid grid-cols-2 gap-y-10 gap-x-6 px-2">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 px-2">
                                             <div className="flex flex-col gap-2">
                                                 <div className="text-[9px] font-black text-emerald-500 uppercase tracking-widest opacity-70">FTE Strength</div>
                                                 <div className={`text-4xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>{opportunity?.fteCount || 0}</div>
@@ -206,8 +208,14 @@ const OpportunityDetailsDrawer = ({ isOpen, onClose, opportunityId, onUpdate }) 
                                                 <div className="text-[9px] font-black text-amber-500 uppercase tracking-widest opacity-70">Variable Hours</div>
                                                 <div className={`text-4xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>{opportunity?.nonFteHours || 0}</div>
                                             </div>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="text-[9px] font-black text-indigo-500 uppercase tracking-widest opacity-70">Non-FTE</div>
+                                                <div className={`text-4xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>{opportunity?.nonFte || 0}</div>
+                                            </div>
                                             <InfoBlock label="Engagement PM/AM" value={opportunity?.pmAm} icon={UserCheck} />
-                                            <InfoBlock label="Expertise Required" value={opportunity?.skillTech} />
+                                            <div className="col-span-2 md:col-span-4">
+                                                <InfoBlock label="Expertise Required" value={opportunity?.skillTech} />
+                                            </div>
                                         </div>
                                     </section>
 
@@ -241,31 +249,31 @@ const OpportunityDetailsDrawer = ({ isOpen, onClose, opportunityId, onUpdate }) 
                                         <div className="space-y-10 px-2">
                                             <div className="grid grid-cols-1 gap-6">
                                                 <WorkbenchInput
-                                                    label="GIT Architecture URL"
+                                                    label="GIT URL"
                                                     value={discussionNotes.git}
                                                     onChange={(val) => setDiscussionNotes({ ...discussionNotes, git: val })}
-                                                    placeholder="https://..."
+                                                    placeholder=""
                                                     isDark={isDark}
                                                 />
                                                 <WorkbenchInput
-                                                    label="PM Checklist / Plan URL"
+                                                    label="PM Checklist"
                                                     value={discussionNotes.pmChecklist}
                                                     onChange={(val) => setDiscussionNotes({ ...discussionNotes, pmChecklist: val })}
-                                                    placeholder="https://..."
+                                                    placeholder=""
                                                     isDark={isDark}
                                                 />
                                                 <WorkbenchInput
-                                                    label="QBR / Review Notes URL"
+                                                    label="Notes"
                                                     value={discussionNotes.qbrNotes}
                                                     onChange={(val) => setDiscussionNotes({ ...discussionNotes, qbrNotes: val })}
-                                                    placeholder="https://..."
+                                                    placeholder=""
                                                     isDark={isDark}
                                                 />
                                                 <WorkbenchInput
-                                                    label="Products / SKUs"
+                                                    label="Products"
                                                     value={discussionNotes.products}
                                                     onChange={(val) => setDiscussionNotes({ ...discussionNotes, products: val })}
-                                                    placeholder="List products involved..."
+                                                    placeholder=""
                                                     isDark={isDark}
                                                 />
                                             </div>
@@ -276,7 +284,7 @@ const OpportunityDetailsDrawer = ({ isOpen, onClose, opportunityId, onUpdate }) 
                                                     className={`w-full border rounded-[32px] p-6 h-48 text-sm outline-none transition-all resize-none shadow-lg custom-scrollbar ${isDark ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500 focus:bg-white/10' : 'bg-gray-50 border-gray-100 text-gray-900 focus:border-indigo-500 focus:bg-white'}`}
                                                     value={discussionNotes.notes}
                                                     onChange={(e) => setDiscussionNotes({ ...discussionNotes, notes: e.target.value })}
-                                                    placeholder="Capture live interaction details..."
+                                                    placeholder=""
                                                 />
                                             </div>
                                             <button

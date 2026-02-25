@@ -31,6 +31,7 @@ function App() {
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/leads" element={<LeadsList />} />
                                 <Route path="/leads/new" element={<LeadForm />} />
+                                <Route path="/leads/:id/edit" element={<LeadForm />} />
                                 <Route path="/accounts" element={<AccountsList />} />
                                 <Route path="/accounts/:id" element={<AccountDetail />} />
                                 <Route path="/opportunities" element={<OpportunitiesList />} />

@@ -9,8 +9,8 @@ const createOpportunity = (req, res) => {
     }
 };
 
-const getOpportunities = (req, res) => {
-    const opps = opportunityService.getOpportunities();
+const getOpportunities = async (req, res) => {
+    const opps = await opportunityService.getOpportunities();
     res.json(opps);
 };
 
